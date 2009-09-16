@@ -12,7 +12,7 @@ use DBI;
 use UNIVERSAL::require;
 use YAML;
 
-our $VERSION = '0.01';
+our $VERSION = '0.02';
 
 sub load {
     my ( $class, $file ) = @_;
@@ -21,7 +21,7 @@ sub load {
         croak $!;
     }
 
-    $class->config( +{ connect_info => YAML::LoadFile($file) } );
+    $class->config( YAML::LoadFile($file) );
 }
 
 sub connect {
@@ -121,13 +121,10 @@ DBIx::DBHResolver - Pluggable library handles many databases a.k.a Database DBHR
 
   my ($even_num, $odd_num) = (100, 101);
 
-  ### Using DBIx::DBHResolver::Strategy::Simple
+  ### Using DBIx::DBHResolver::Strategy::Remainder
   my $heavy_cluster_list = DBIx::DBHResolver->cluster('HEAVY_MASTER');
-  my $heavy1_conn_info   = DBIx::DBHResolver->connect_info('HEAVY_MASTER', +{ strategy => 'Simple', key => $even_num });
-  my $heavy2_dbh         = DBIx::DBHResolver->connect_cached('HEAVY_MASTER', +{ strategy => 'Simple', key => $odd_num });
-
-  ### Using DBIx::DBHResolver::Strategy::RoundRobin
-  my $slave_dbh          = DBIx::DBHResolver->connect('SLAVE', +{ strategy => 'RoundRobin' });
+  my $heavy1_conn_info   = DBIx::DBHResolver->connect_info('HEAVY_MASTER', +{ strategy => 'Remainder', key => $even_num });
+  my $heavy2_dbh         = DBIx::DBHResolver->connect_cached('HEAVY_MASTER', +{ strategy => 'Remainder', key => $odd_num });
 
 =head1 DESCRIPTION
 

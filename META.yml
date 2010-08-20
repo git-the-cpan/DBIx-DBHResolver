@@ -1,14 +1,13 @@
 ---
-abstract: 'Pluggable library handles many databases a.k.a Database DBHResolver.'
+abstract: 'Resolve database connection on the environment has many database servers.'
 author:
-  - 'Kosuke Arisawa <arisawa@gmail.com>'
+  - '=over'
 build_requires:
   ExtUtils::MakeMaker: 6.42
-  Test::More: 0
 configure_requires:
   ExtUtils::MakeMaker: 6.42
 distribution_type: module
-generated_by: 'Module::Install version 0.91'
+generated_by: 'Module::Install version 1.00'
 license: perl
 meta-spec:
   url: http://module-build.sourceforge.net/META-spec-v1.4.html
@@ -21,10 +20,14 @@ no_index:
     - xt
 requires:
   Carp: 0
-  Class::Data::Inheritable: 0
+  Class::Accessor::Fast: 0
   DBI: 0
+  Filter::Util::Call: 0
+  Try::Tiny: 0
   UNIVERSAL::require: 0
   YAML: 0
+  parent: 0
 resources:
   license: http://dev.perl.org/licenses/
-version: 0.02
+  repository: git://github.com/arisawa/p5-dbix-dbhresolver.git
+version: 0.10

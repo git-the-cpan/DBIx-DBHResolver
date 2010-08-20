@@ -18,7 +18,7 @@ sub _carp {
     return warn @_, " at $file line $line\n";
 }
 
-our $VERSION = '0.92';
+our $VERSION = '0.95_02';
 $VERSION = eval $VERSION;    ## no critic (BuiltinFunctions::ProhibitStringyEval)
 
 use Test::Builder::Module;
@@ -34,10 +34,11 @@ our @EXPORT = qw(ok use_ok require_ok
   done_testing
   can_ok isa_ok new_ok
   diag note explain
+  subtest
   BAIL_OUT
 );
 
-#line 163
+#line 164
 
 sub plan {
     my $tb = Test::More->builder;
@@ -71,7 +72,7 @@ sub import_extra {
     return;
 }
 
-#line 216
+#line 217
 
 sub done_testing {
     my $tb = Test::More->builder;
@@ -188,6 +189,7 @@ sub isa_ok ($$;$) {
             }
             elsif( $error =~ /Can't call method "isa" without a package/ ) {
                 # It's something that can't even be a class
+                $obj_name = 'The thing' unless defined $obj_name;
                 $diag = "$obj_name isn't a class or reference";
             }
             else {
@@ -220,7 +222,7 @@ WHOA
     return $ok;
 }
 
-#line 650
+#line 651
 
 sub new_ok {
     my $tb = Test::More->builder;
@@ -245,7 +247,16 @@ sub new_ok {
     return $obj;
 }
 
-#line 690
+#line 736
+
+sub subtest($&) {
+    my ($name, $subtests) = @_;
+
+    my $tb = Test::More->builder;
+    return $tb->subtest(@_);
+}
+
+#line 760
 
 sub pass (;$) {
     my $tb = Test::More->builder;
@@ -259,7 +270,7 @@ sub fail (;$) {
     return $tb->ok( 0, @_ );
 }
 
-#line 753
+#line 823
 
 sub use_ok ($;@) {
     my( $module, @imports ) = @_;
@@ -321,7 +332,7 @@ sub _eval {
     return( $eval_result, $eval_error );
 }
 
-#line 822
+#line 892
 
 sub require_ok ($) {
     my($module) = shift;
@@ -329,7 +340,7 @@ sub require_ok ($) {
 
     my $pack = caller;
 
-    # Try to deterine if we've been given a module name or file.
+    # Try to determine if we've been given a module name or file.
     # Module names must be barewords, files not.
     $module = qq['$module'] unless _is_module_name($module);
 
@@ -365,7 +376,7 @@ sub _is_module_name {
     return $module =~ /^[a-zA-Z]\w*$/ ? 1 : 0;
 }
 
-#line 899
+#line 969
 
 our( @Data_Stack, %Refs_Seen );
 my $DNE = bless [], 'Does::Not::Exist';
@@ -465,14 +476,14 @@ sub _type {
 
     return '' if !ref $thing;
 
-    for my $type (qw(ARRAY HASH REF SCALAR GLOB CODE Regexp)) {
+    for my $type (qw(Regexp ARRAY HASH REF SCALAR GLOB CODE)) {
         return $type if UNIVERSAL::isa( $thing, $type );
     }
 
     return '';
 }
 
-#line 1059
+#line 1129
 
 sub diag {
     return Test::More->builder->diag(@_);
@@ -482,13 +493,13 @@ sub note {
     return Test::More->builder->note(@_);
 }
 
-#line 1085
+#line 1155
 
 sub explain {
     return Test::More->builder->explain(@_);
 }
 
-#line 1151
+#line 1221
 
 ## no critic (Subroutines::RequireFinalReturn)
 sub skip {
@@ -516,7 +527,7 @@ sub skip {
     last SKIP;
 }
 
-#line 1238
+#line 1305
 
 sub todo_skip {
     my( $why, $how_many ) = @_;
@@ -537,7 +548,7 @@ sub todo_skip {
     last TODO;
 }
 
-#line 1293
+#line 1360
 
 sub BAIL_OUT {
     my $reason = shift;
@@ -546,7 +557,7 @@ sub BAIL_OUT {
     $tb->BAIL_OUT($reason);
 }
 
-#line 1332
+#line 1399
 
 #'#
 sub eq_array {
@@ -570,6 +581,8 @@ sub _eq_array {
         my $e1 = $_ > $#$a1 ? $DNE : $a1->[$_];
         my $e2 = $_ > $#$a2 ? $DNE : $a2->[$_];
 
+        next if _equal_nonrefs($e1, $e2);
+
         push @Data_Stack, { type => 'ARRAY', idx => $_, vals => [ $e1, $e2 ] };
         $ok = _deep_check( $e1, $e2 );
         pop @Data_Stack if $ok;
@@ -578,6 +591,21 @@ sub _eq_array {
     }
 
     return $ok;
+}
+
+sub _equal_nonrefs {
+    my( $e1, $e2 ) = @_;
+
+    return if ref $e1 or ref $e2;
+
+    if ( defined $e1 ) {
+        return 1 if defined $e2 and $e1 eq $e2;
+    }
+    else {
+        return 1 if !defined $e2;
+    }
+
+    return;
 }
 
 sub _deep_check {
@@ -592,9 +620,6 @@ sub _deep_check {
     local %Refs_Seen = %Refs_Seen;
 
     {
-        # Quiet uninitialized value warnings when comparing undefs.
-        no warnings 'uninitialized';
-
         $tb->_unoverload_str( \$e1, \$e2 );
 
         # Either they're both references or both not.
@@ -605,7 +630,7 @@ sub _deep_check {
             $ok = 0;
         }
         elsif( !defined $e1 and !defined $e2 ) {
-            # Shortcut if they're both defined.
+            # Shortcut if they're both undefined.
             $ok = 1;
         }
         elsif( _dne($e1) xor _dne($e2) ) {
@@ -672,7 +697,7 @@ WHOA
     }
 }
 
-#line 1465
+#line 1546
 
 sub eq_hash {
     local @Data_Stack = ();
@@ -695,6 +720,8 @@ sub _eq_hash {
         my $e1 = exists $a1->{$k} ? $a1->{$k} : $DNE;
         my $e2 = exists $a2->{$k} ? $a2->{$k} : $DNE;
 
+        next if _equal_nonrefs($e1, $e2);
+
         push @Data_Stack, { type => 'HASH', idx => $k, vals => [ $e1, $e2 ] };
         $ok = _deep_check( $e1, $e2 );
         pop @Data_Stack if $ok;
@@ -705,7 +732,7 @@ sub _eq_hash {
     return $ok;
 }
 
-#line 1522
+#line 1605
 
 sub eq_set {
     my( $a1, $a2 ) = @_;
@@ -730,6 +757,6 @@ sub eq_set {
     );
 }
 
-#line 1735
+#line 1807
 
 1;

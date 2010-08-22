@@ -17,6 +17,7 @@ inc/Test/Base.pm
 inc/Test/Base/Filter.pm
 inc/Test/Builder.pm
 inc/Test/Builder/Module.pm
+inc/Test/Exception.pm
 inc/Test/LoadAllModules.pm
 inc/Test/More.pm
 inc/Test/Requires.pm

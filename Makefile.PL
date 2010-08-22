@@ -11,17 +11,16 @@ requires 'UNIVERSAL::require';
 requires 'YAML';
 
 test_requires 'Test::More';
+test_requires 'Test::Exception';
 test_requires 'Test::LoadAllModules';
 test_requires 'Test::Requires';
 
 auto_set_repository;
 
-tests_recursive 't';
+tests 't/*.t';
 author_tests 'xt';
 
 use_test_base;
-auto_set_repository;
 auto_include;
 # auto_manifest;
-
 WriteAll;

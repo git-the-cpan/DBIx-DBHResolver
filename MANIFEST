@@ -22,14 +22,13 @@ inc/Test/LoadAllModules.pm
 inc/Test/More.pm
 inc/Test/Requires.pm
 lib/DBIx/DBHResolver.pm
+lib/DBIx/DBHResolver/Strategy.pm
 lib/DBIx/DBHResolver/Strategy/Key.pm
 lib/DBIx/DBHResolver/Strategy/List.pm
 lib/DBIx/DBHResolver/Strategy/Range.pm
 lib/DBIx/DBHResolver/Strategy/Remainder.pm
 Makefile.PL
 MANIFEST			This list of files
-MANIFEST.bak
-MANIFEST.SKIP
 META.yml
 README
 t/cluster.t
@@ -40,6 +39,7 @@ t/connect_info.t
 t/db.conf.yaml
 t/db1.conf.perl
 t/db2.conf.perl
+t/resolve_node_keys.t
 xt/01_podspell.t
 xt/02_perlcritic.t
 xt/03_pod.t
